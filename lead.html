@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Akses gratis · plm. studio</title>
+  <meta name="description" content="Dapatkan materi gratis dari kreator favoritmu.">
+  <meta name="theme-color" content="#FAF7F2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%231E1B1B'/%3E%3Ctext x='32' y='41' font-family='monospace' font-size='22' font-weight='700' fill='%23FAF7F2' text-anchor='middle'%3Eplm.%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap">
+  <link rel="stylesheet" href="css/style.css?v=1.0.0">
+  <style>
+    .lead-wrap { min-height: 100vh; display: grid; place-items: center; padding: 28px 16px; }
+    .lead-card { width: 100%; max-width: 520px; position: relative; }
+    .lead-card .display { font-size: clamp(34px, 7vw, 48px); }
+    .lead-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .lead-ok { text-align: center; }
+    .lead-ok .big { font-size: 54px; line-height: 1; }
+  </style>
+</head>
+<body>
+  <main class="lead-wrap">
+    <section class="card lg lead-card col gap-16" id="lead">
+      <div class="row between"><div class="row gap-10"><div class="logo">plm.</div><span class="label" id="ld-studio">plm. studio</span></div><span class="pill mono p-blush" id="ld-emo">🍒 free</span></div>
+      <div class="sk" style="height:120px;border-radius:18px"></div>
+    </section>
+  </main>
+  <script src="js/config.js?v=1.0.0"></script>
+  <script>
+  /* Halaman publik lead magnet — tanpa login. Data masuk ke CRM_Kontak (Sumber: lead). */
+  (function () {
+    'use strict';
+    var URL_API = (window.APP_CONFIG && window.APP_CONFIG.GAS_URL) || '';
+    var qs = new URLSearchParams(location.search), PRODUK = qs.get('p') || '', SUMBER = (qs.get('src') || qs.get('utm_source') || document.referrer.replace(/^https?:\/\//, '').split('/')[0] || 'langsung').slice(0, 60);
+    var box = document.getElementById('lead');
+    function h(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function siap() { return /^https:\/\/script\.google(usercontent)?\.com\/.+\/exec/.test(URL_API) && !/GANTI|XXXX/.test(URL_API) || /^http:\/\/(localhost|127\.0\.0\.1)/.test(URL_API); }
+    function post(action, data) {
+      return fetch(URL_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: action, token: '', data: data || {} }), redirect: 'follow' })
+        .then(function (r) { return r.text(); }).then(function (t) { try { return JSON.parse(t); } catch (e) { return { success: false, message: 'Server tidak merespons dengan benar.' }; } })
+        .catch(function () { return { success: false, message: 'Tidak bisa terhubung. Periksa koneksi internet.' }; });
+    }
+    function drain(n) { post('drain', {}).then(function (r) { if (r && r.success && r.data && r.data.left > 0 && n < 3) setTimeout(function () { drain(n + 1); }, 1500); }); }
+    function gagal(msg) { box.innerHTML = '<div class="lead-ok col gap-12"><div class="big">🌧️</div><h1 class="h2">Form belum tersedia</h1><p class="muted">' + h(msg) + '</p></div>'; }
+    if (!siap()) return gagal('Konfigurasi URL server belum diisi.');
+    post('lead.info', { p: PRODUK }).then(function (r) {
+      if (!r.success) return gagal(r.message || 'Form sedang ditutup.');
+      var d = r.data, p = d.produk, k = d.kit || {};
+      if (!/^#[0-9a-f]{3,8}$/i.test(k.WarnaPrimer || '')) k.WarnaPrimer = '';
+      document.title = (p ? p.Nama : d.judul) + ' · ' + d.studio;
+      if (k.WarnaPrimer) document.documentElement.style.setProperty('--lead-accent', k.WarnaPrimer);
+      var judul = p ? p.Nama : d.judul, kata = String(judul).split(' '), awal = kata.slice(0, Math.ceil(kata.length / 2)).join(' '), akhir = kata.slice(Math.ceil(kata.length / 2)).join(' ');
+      box.innerHTML = '<div class="row between"><div class="row gap-10"><div class="logo">plm.</div><span class="label">' + h(d.studio) + '</span></div><span class="pill mono p-blush">' + h(k.Emoji || '🍒') + ' ' + (p && Number(p.Harga) > 0 ? 'bonus' : 'gratis') + '</span></div>' +
+        '<div class="col gap-10"><span class="pill mono p-sage" style="align-self:flex-start">' + h(p ? (p.Jenis || 'Produk digital') : 'Lead magnet') + '</span><h1 class="display">' + h(awal) + ' <span class="it">' + h(akhir) + '</span></h1>' + (p && p.Deskripsi ? '<p class="lead" style="font-size:16px">' + h(p.Deskripsi) + '</p>' : '<p class="lead" style="font-size:16px">' + h(d.judul) + ' — isi data singkat di bawah, aksesnya langsung dikirim ke WhatsApp/email kamu.</p>') + '</div>' +
+        '<form class="col gap-12" id="lf" novalidate><div class="field"><label for="lf-n">Nama panggilan</label><input class="inp" id="lf-n" name="nama" autocomplete="given-name" required maxlength="80" placeholder="mis. Rina"></div>' +
+        '<div class="field"><label for="lf-w">WhatsApp</label><input class="inp" id="lf-w" name="wa" inputmode="tel" autocomplete="tel" placeholder="0812xxxxxxx"></div>' +
+        '<div class="field"><label for="lf-e">Email <span class="opt">opsional bila WA diisi</span></label><input class="inp" id="lf-e" name="email" type="email" autocomplete="email" placeholder="nama@email.com"></div>' +
+        '<div class="lead-hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>' +
+        '<label class="check sq small"><input type="checkbox" id="lf-ok" checked> Saya bersedia menerima pesan dari ' + h(d.studio) + '. Bisa berhenti kapan saja dengan membalas STOP.</label>' +
+        '<p class="err-text small" id="lf-err" hidden></p><button class="btn btn-ink btn-lg shine" id="lf-btn" type="submit"' + (k.WarnaPrimer ? ' style="background:' + h(k.WarnaPrimer) + ';color:#1E1B1B"' : '') + '>Kirim akses ke saya ✦</button></form>' +
+        '<p class="xs muted tc">Data kamu hanya dipakai untuk mengirim materi ini & kabar terkait. Tidak dijual ke pihak lain.</p>';
+      var f = document.getElementById('lf'), err = document.getElementById('lf-err'), btn = document.getElementById('lf-btn');
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = { nama: f.nama.value.trim(), wa: f.wa.value.trim(), email: f.email.value.trim(), website: f.website.value, p: PRODUK, sumber: SUMBER };
+        err.hidden = true;
+        if (!v.nama) { err.textContent = 'Isi nama dulu ya.'; err.hidden = false; return f.nama.focus(); }
+        if (!/^(\+?62|0)8\d{7,12}$/.test(v.wa.replace(/[\s.-]/g, '')) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email)) { err.textContent = 'Isi nomor WhatsApp (08…) atau email yang valid.'; err.hidden = false; return; }
+        if (!document.getElementById('lf-ok').checked) { err.textContent = 'Centang persetujuan agar kami bisa mengirim aksesnya.'; err.hidden = false; return; }
+        btn.disabled = true; btn.textContent = 'Mengirim…';
+        post('lead.capture', v).then(function (r) {
+          if (!r.success) { btn.disabled = false; btn.textContent = 'Kirim akses ke saya ✦'; err.textContent = r.message || 'Gagal mengirim. Coba lagi.'; err.hidden = false; return; }
+          if (r.nq > 0) setTimeout(function () { drain(0); }, 300);
+          box.innerHTML = '<div class="lead-ok col gap-12"><div class="big">🍒</div><h1 class="display" style="font-size:36px">terima kasih, <span class="it">' + h(v.nama) + '</span>.</h1><p class="lead" style="font-size:16px">' + h(r.message || d.pesanSukses) + '</p>' + (r.data && /^https?:\/\//.test(r.data.link || '') ? '<a class="btn btn-ink btn-lg" href="' + h(r.data.link) + '" target="_blank" rel="noopener">Buka materinya →</a>' : '') + '<p class="xs muted">' + h(d.studio) + '</p></div>';
+        });
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
